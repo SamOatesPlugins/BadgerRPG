@@ -1,0 +1,10 @@
+name: BadgerRPG
+main: com.samoatesgames.badgerrpg.BadgerRPG
+version: 1.0
+authors: [SamOatesPlugins]
+description: Adds an RPG element to Minecraft.
+
+commands:
+    skills:
+        description: Access to the skills GUI
+        usage: /<command>
