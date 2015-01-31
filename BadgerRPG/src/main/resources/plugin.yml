@@ -2,6 +2,7 @@ name: BadgerRPG
 main: com.samoatesgames.badgerrpg.BadgerRPG
 version: 1.0
 authors: [SamOatesPlugins]
+softdepend: [LogBlock]
 description: Adds an RPG element to Minecraft.
 
 commands:

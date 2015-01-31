@@ -17,12 +17,8 @@ public class WoodCuttingSkill extends BlockBasedSkill {
         super(plugin, "WoodCutting", Material.DIAMOND_AXE);
         
         // Register default logs (this can be changed via config)
-        m_blocks.put(Material.LOG, new BlockData(4, 0));           // Oak
-        m_blocks.put(Material.LOG, new BlockData(4, 1));           // Spruce
-        m_blocks.put(Material.LOG, new BlockData(4, 2));           // Birch
-        m_blocks.put(Material.LOG, new BlockData(4, 3));           // Jungle
-        m_blocks.put(Material.LOG_2, new BlockData(4, 0));         // Acacia
-        m_blocks.put(Material.LOG_2, new BlockData(4, 1));         // Dark Oak
+        m_blocks.put(Material.LOG, new BlockData(4));
+        m_blocks.put(Material.LOG_2, new BlockData(4));
         
         // Register default tools (this can be changed via config)
         m_tools.add(Material.WOOD_AXE);

@@ -1,21 +1,23 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.samoatesgames.badgerrpg.skills.blocks;
 
 import com.samoatesgames.badgerrpg.BadgerRPG;
 import com.samoatesgames.badgerrpg.skills.PlayerSkillData;
 import com.samoatesgames.badgerrpg.skills.RPGSkill;
 import com.samoatesgames.samoatesplugincore.configuration.PluginConfiguration;
+import de.diddiz.LogBlock.BlockChange;
+import de.diddiz.LogBlock.LogBlock;
+import de.diddiz.LogBlock.QueryParams;
+import de.diddiz.LogBlock.QueryParams.BlockChangeType;
 import java.io.File;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -35,6 +37,11 @@ public class BlockBasedSkill extends RPGSkill {
      * All tools which can be used by this skill
      */
     protected final List<Material> m_tools = new ArrayList<Material>();
+    
+    /**
+     * 
+     */
+    protected final List<Location> m_humanMadeBlocks = new ArrayList<Location>();
     
     /**
      * Class constructor
@@ -61,10 +68,7 @@ public class BlockBasedSkill extends RPGSkill {
         configuration.registerSetting("enabled", true);
         for (Entry<Material, BlockData> blockData : m_blocks.entrySet()) {
             BlockData data = blockData.getValue();
-            configuration.registerSetting("blocks." + blockData.getKey().name() + ".xp", data.getXp());            
-            if (data.getDataID() != 0) {
-                configuration.registerSetting("blocks." + blockData.getKey().name() + ".data_id", data.getDataID());
-            }
+            configuration.registerSetting("blocks." + blockData.getKey().name() + ".xp", data.getXp());  
         }
         
         for (Material tool : m_tools) {
@@ -79,9 +83,8 @@ public class BlockBasedSkill extends RPGSkill {
             
             // Try load the block configuration
             int xp = configuration.getSetting("blocks." + material.name() + ".xp", 0, true);
-            int dataId = configuration.getSetting("blocks." + material.name() + ".data_id", 0, true);
             if (xp != 0) {
-                m_blocks.put(material, new BlockData(xp, dataId));
+                m_blocks.put(material, new BlockData(xp));
             }
             
             // Try load the tool configuration
@@ -100,23 +103,51 @@ public class BlockBasedSkill extends RPGSkill {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         
+        final Block block = event.getBlock();
         final Player player = event.getPlayer();
+        
+        // If log block is setup, then protect against xp grinding
+        LogBlock logBlock = m_plugin.getLogBlock();
+        if (logBlock != null) {
+            try {
+                Location location = block.getLocation();
+                
+                QueryParams logBlockQuery = new QueryParams(logBlock);
+                logBlockQuery.bct = BlockChangeType.CREATED;
+                logBlockQuery.loc = location;
+                logBlockQuery.world = block.getWorld();
+                logBlockQuery.limit = -1;
+                logBlockQuery.needId = true;
+                logBlockQuery.needDate = true;
+                logBlockQuery.needType = true;
+                logBlockQuery.needData = true;
+                logBlockQuery.needPlayer = true;
+                logBlockQuery.needCoords = true;
+                
+                for (BlockChange change : logBlock.getBlockChanges(logBlockQuery)) {
+                    if (change.loc.getBlockX() == location.getBlockX() && 
+                            change.loc.getBlockY() == location.getBlockY() &&
+                            change.loc.getBlockZ() == location.getBlockZ()) {
+                        return;
+                    }
+                }
+                
+            } catch (SQLException ex) {}
+        }
+        
         final PlayerSkillData skillData = this.getSkillData(player);
         if (skillData == null) {
             m_plugin.logError("Failed to find '" + player.getName() + "s' player skill data.");
             return;
         }
-        
+
         // See if we care about the block in this skill
-        final Material blockMaterial = event.getBlock().getType();
+        final Material blockMaterial = block.getType();
         if (!m_blocks.containsKey(blockMaterial)) {
             return;
         }
-        
+
         BlockData blockData = m_blocks.get(blockMaterial);
-        if (blockData.getDataID() != event.getBlock().getData()) {
-            return;
-        }
         
         // See if the tool being used is valid for this skill
         final Material tool = player.getItemInHand().getType();

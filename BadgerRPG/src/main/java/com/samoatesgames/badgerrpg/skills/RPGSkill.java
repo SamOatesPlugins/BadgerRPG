@@ -1,13 +1,13 @@
 package com.samoatesgames.badgerrpg.skills;
 
 import com.samoatesgames.badgerrpg.BadgerRPG;
-import com.samoatesgames.samoatesplugincore.configuration.PluginConfiguration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import uk.thecodingbadgers.bDatabaseManager.DatabaseTable.DatabaseTable;
 
 /**
  *
@@ -49,7 +49,6 @@ public abstract class RPGSkill implements Listener {
     
     /**
      * 
-     * @param configuration
      * @return 
      */
     public abstract boolean initialize();
@@ -82,15 +81,16 @@ public abstract class RPGSkill implements Listener {
      * Add new player data (removing old if already registered)
      *
      * @param player
+     * @param skillTable
      */
-    public void addPlayerData(final Player player) {
+    public void addPlayerData(final Player player, final DatabaseTable skillTable) {
 
         final UUID uuid = player.getUniqueId();
         if (m_playerData.containsKey(uuid)) {
             m_playerData.remove(uuid);
         }
 
-        m_playerData.put(uuid, new PlayerSkillData(player));
+        m_playerData.put(uuid, new PlayerSkillData(player, this.getName(), skillTable));
     }
 
     /**

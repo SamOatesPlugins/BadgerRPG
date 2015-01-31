@@ -1,6 +1,8 @@
 package com.samoatesgames.badgerrpg.skills.blocks;
 
 import com.samoatesgames.badgerrpg.BadgerRPG;
+import java.util.ArrayList;
+import java.util.List;
 import org.bukkit.Material;
 
 /**
@@ -24,10 +26,7 @@ public class MiningSkill extends BlockBasedSkill {
         m_blocks.put(Material.PRISMARINE, new BlockData(1));
         m_blocks.put(Material.HARD_CLAY, new BlockData(1));
         m_blocks.put(Material.STAINED_CLAY, new BlockData(1));
-        m_blocks.put(Material.STONE, new BlockData(1));
-        m_blocks.put(Material.STONE, new BlockData(1, 5)); //Andersite
-        m_blocks.put(Material.STONE, new BlockData(1, 3)); //Diorite
-        m_blocks.put(Material.STONE, new BlockData(1, 1)); // Granite
+        m_blocks.put(Material.STONE, new BlockData(1));        
         m_blocks.put(Material.SMOOTH_BRICK, new BlockData(1));
         m_blocks.put(Material.ENDER_STONE, new BlockData(1));
         m_blocks.put(Material.BRICK, new BlockData(1));

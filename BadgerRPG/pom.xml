@@ -24,6 +24,13 @@
             <artifactId>SamOatesPluginCore</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>de.diddiz</groupId>
+            <artifactId>LogBlock</artifactId>
+            <version>1.81</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/LogBlock.jar</systemPath>
+        </dependency>
     </dependencies>
     
     <build>
