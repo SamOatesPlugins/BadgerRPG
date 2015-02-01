@@ -106,6 +106,11 @@ public class BlockBasedSkill extends RPGSkill {
         final Block block = event.getBlock();
         final Player player = event.getPlayer();
         
+        // Do they have perms for this skill?
+        if (!m_plugin.hasPermission(player, this.getPermission())) {
+            return;
+        }
+        
         // If log block is setup, then protect against xp grinding
         LogBlock logBlock = m_plugin.getLogBlock();
         if (logBlock != null) {
@@ -141,6 +146,12 @@ public class BlockBasedSkill extends RPGSkill {
             return;
         }
 
+        // See if the tool being used is valid for this skill
+        final Material tool = player.getItemInHand().getType();
+        if (!m_tools.contains(tool)) {
+            return;
+        }
+        
         // See if we care about the block in this skill
         final Material blockMaterial = block.getType();
         if (!m_blocks.containsKey(blockMaterial)) {
@@ -148,13 +159,7 @@ public class BlockBasedSkill extends RPGSkill {
         }
 
         BlockData blockData = m_blocks.get(blockMaterial);
-        
-        // See if the tool being used is valid for this skill
-        final Material tool = player.getItemInHand().getType();
-        if (!m_tools.contains(tool)) {
-            return;
-        }
-        
+                
         // Add the xp to the skill
         skillData.addXP(blockData.getXp());
     }

@@ -6,7 +6,6 @@ import com.samoatesgames.badgerrpg.skills.RPGSkill;
 import com.samoatesgames.samoatesplugincore.commands.BasicCommandHandler;
 import com.samoatesgames.samoatesplugincore.commands.PluginCommandManager;
 import com.samoatesgames.samoatesplugincore.gui.GuiInventory;
-import java.util.Map;
 import java.util.TreeMap;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;

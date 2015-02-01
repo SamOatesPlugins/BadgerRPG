@@ -100,6 +100,9 @@ public abstract class RPGSkill implements Listener {
     public void removePlayerData(final Player player) {
         final UUID uuid = player.getUniqueId();
         if (m_playerData.containsKey(uuid)) {
+            PlayerSkillData data = m_playerData.get(uuid);
+            data.save();
+            
             m_playerData.remove(uuid);
         }
     }

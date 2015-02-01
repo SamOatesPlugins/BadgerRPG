@@ -81,6 +81,13 @@ public class PlayerSkillData {
     
     /**
      * 
+     */
+    public void save() {
+        m_skillTable.update(m_data, "`player` = '" + m_data.player + "' AND `skillName` = '" + m_data.skillName + "'", true);
+    }
+    
+    /**
+     * 
      * @return 
      */
     public int getLevel() {
