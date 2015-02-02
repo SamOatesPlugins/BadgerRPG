@@ -168,15 +168,17 @@ public final class BadgerRPG extends SamOatesPlugin {
             skill.addPlayerData(player, m_skillTable);
 
             ResultSet result = m_skillTable.selectAll("`player` = '" + player.getUniqueId().toString() + "' AND `skillName` = '" + skill.getName() + "'");
-            try {
-                if (result.next()) {
-                    PlayerSkillData data = skill.getSkillData(player);
-                    data.setXP(result.getInt("xp"));
+            if (result != null) {
+                try {
+                    if (result.next()) {
+                        PlayerSkillData data = skill.getSkillData(player);
+                        data.setXP(result.getInt("xp"));
+                        data.setTimeout(result.getLong("abilityReset"));
+                    }
+                } catch (Exception ex) {
+                    this.logException("Failed to load skill data for '" + player.getUniqueId().toString() + "'", ex);
                 }
-            } catch (Exception ex) {
-                this.logException("Failed to load skill data for '" + player.getUniqueId().toString() + "'", ex);
             }
-            m_database.freeResult(result);
         }
     }
 

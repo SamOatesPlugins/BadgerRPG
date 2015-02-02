@@ -14,11 +14,13 @@ public class PlayerSkillTableData {
     public final String player;
     public final String skillName;
     public int xp = 0;
+    public Long abilityReset = 0L;
     
-    public PlayerSkillTableData(String playerUUID, String skillName, int xp) {
+    public PlayerSkillTableData(String playerUUID, String skillName, int xp, Long abilityReset) {
         this.player = playerUUID;
         this.skillName = skillName;
-        this.xp = xp;        
+        this.xp = xp;
+        this.abilityReset = abilityReset;
     }
     
 }

@@ -81,6 +81,10 @@ public class SkillCommand extends BasicCommandHandler {
             String[] details = new String[3];
             
             PlayerSkillData skillData = skill.getSkillData(player);
+            if (skillData == null) {                
+                continue;
+            }
+            
             details[0] = ChatColor.GREEN + "Level " + skillData.getLevel();
             details[1] = ChatColor.GOLD + "Experience " + skillData.getXP();
 

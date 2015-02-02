@@ -15,12 +15,20 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitTask;
 
 /**
  *
@@ -162,5 +170,48 @@ public class BlockBasedSkill extends RPGSkill {
                 
         // Add the xp to the skill
         skillData.addXP(blockData.getXp());
+    }
+    
+    /**
+     * Called when a player interacts
+     * @param event The block break event
+     */
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        
+        final Player player = event.getPlayer();
+        
+        // Do they have perms for this skill?
+        if (!m_plugin.hasPermission(player, this.getPermission())) {
+            return;
+        }
+        
+        // See if the tool being used is valid for this skill
+        final ItemStack tool = player.getItemInHand();
+        if (!m_tools.contains(tool.getType())) {
+            return;
+        }
+     
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+        
+        final PlayerSkillData skillData = this.getSkillData(player);
+        if (skillData == null) {
+            m_plugin.logError("Failed to find '" + player.getName() + "s' player skill data.");
+            return;
+        }
+        
+        if (!skillData.canUseAbility()) {
+            m_plugin.sendMessage(player, "You can not use your " + this.getName() + " ability for another " + skillData.getTimeoutRemaining() + "...");
+            return;
+        }
+        
+        int secondsToHaveAbility = 3 + (int)Math.floor(skillData.getLevel() * 0.5);
+        PotionEffect effect = new PotionEffect(PotionEffectType.FAST_DIGGING, 20 * secondsToHaveAbility, 10, true);
+        player.addPotionEffect(effect, true);
+        
+        int timeoutSeconds = secondsToHaveAbility + 300;
+        skillData.setTimeout(System.currentTimeMillis() + (timeoutSeconds * 1000));
     }
 }
