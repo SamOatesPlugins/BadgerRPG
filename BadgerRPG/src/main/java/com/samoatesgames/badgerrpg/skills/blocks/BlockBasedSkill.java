@@ -19,7 +19,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
@@ -28,7 +27,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitTask;
 
 /**
  *
@@ -118,36 +116,7 @@ public class BlockBasedSkill extends RPGSkill {
         if (!m_plugin.hasPermission(player, this.getPermission())) {
             return;
         }
-        
-        // If log block is setup, then protect against xp grinding
-        LogBlock logBlock = m_plugin.getLogBlock();
-        if (logBlock != null) {
-            try {
-                Location location = block.getLocation();
                 
-                QueryParams logBlockQuery = new QueryParams(logBlock);
-                logBlockQuery.bct = BlockChangeType.CREATED;
-                logBlockQuery.loc = location;
-                logBlockQuery.world = block.getWorld();
-                logBlockQuery.limit = -1;
-                logBlockQuery.needId = true;
-                logBlockQuery.needDate = true;
-                logBlockQuery.needType = true;
-                logBlockQuery.needData = true;
-                logBlockQuery.needPlayer = true;
-                logBlockQuery.needCoords = true;
-                
-                for (BlockChange change : logBlock.getBlockChanges(logBlockQuery)) {
-                    if (change.loc.getBlockX() == location.getBlockX() && 
-                            change.loc.getBlockY() == location.getBlockY() &&
-                            change.loc.getBlockZ() == location.getBlockZ()) {
-                        return;
-                    }
-                }
-                
-            } catch (SQLException ex) {}
-        }
-        
         final PlayerSkillData skillData = this.getSkillData(player);
         if (skillData == null) {
             m_plugin.logError("Failed to find '" + player.getName() + "s' player skill data.");
@@ -165,11 +134,40 @@ public class BlockBasedSkill extends RPGSkill {
         if (!m_blocks.containsKey(blockMaterial)) {
             return;
         }
+        
+        final BlockData blockData = m_blocks.get(blockMaterial);
+        final int xp = blockData.getXp();
+        
+        final LogBlock logBlock = m_plugin.getLogBlock();
+        if (logBlock == null) {
+            // Not using logblock, just give the xp
+            skillData.addXP(xp);
+        } else {
+            // If log block is setup, then protect against xp grinding            
+            final QueryParams logBlockQuery = new QueryParams(logBlock);
+            logBlockQuery.bct = BlockChangeType.BOTH;
+            logBlockQuery.loc = block.getLocation();
+            logBlockQuery.world = block.getWorld();
+            logBlockQuery.radius = 0;
+            logBlockQuery.limit = 1;
+            logBlockQuery.needCoords = true;
 
-        BlockData blockData = m_blocks.get(blockMaterial);
-                
-        // Add the xp to the skill
-        skillData.addXP(blockData.getXp());
+            Bukkit.getScheduler().runTaskAsynchronously(m_plugin, new Runnable() {            
+                public void run() {
+                    try {
+                        List<BlockChange> changes = logBlock.getBlockChanges(logBlockQuery);
+                        if (changes.isEmpty()) {
+                            // No block changes found at the blocks location
+                            // Add the xp to the skill
+                            synchronized(skillData) {
+                                skillData.addXP(xp);
+                            }
+                        }
+
+                    } catch (SQLException ex) {}
+                }            
+            });
+        }
     }
     
     /**
@@ -196,6 +194,13 @@ public class BlockBasedSkill extends RPGSkill {
             return;
         }
         
+        // See if we care about the block in this skill
+        final Block block = event.getClickedBlock();
+        final Material blockMaterial = block.getType();
+        if (!m_blocks.containsKey(blockMaterial)) {
+            return;
+        }
+        
         final PlayerSkillData skillData = this.getSkillData(player);
         if (skillData == null) {
             m_plugin.logError("Failed to find '" + player.getName() + "s' player skill data.");
@@ -213,5 +218,7 @@ public class BlockBasedSkill extends RPGSkill {
         
         int timeoutSeconds = secondsToHaveAbility + 300;
         skillData.setTimeout(System.currentTimeMillis() + (timeoutSeconds * 1000));
+        
+        m_plugin.sendMessage(player, "Activated your " + this.getName() + " ability!");
     }
 }

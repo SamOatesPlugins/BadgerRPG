@@ -74,21 +74,25 @@ public final class BadgerRPG extends SamOatesPlugin {
         m_commandManager.registerCommandHandler("skills", new SkillCommand(this));
 
         // Get helper plugins
-        Plugin logblockPlugin = pluginManager.getPlugin("LogBlock");
-        if (logblockPlugin != null) {
-            m_logblock = (LogBlock) logblockPlugin;
+        if (this.getSetting(Setting.useLogblockLookup, true)) {
+            Plugin logblockPlugin = pluginManager.getPlugin("LogBlock");
+            if (logblockPlugin != null) {
+                m_logblock = (LogBlock) logblockPlugin;
+            }
         }
 
         // Setup the database
-        m_database = bDatabaseManager.createDatabase(this.getSetting("database.database", "my_database"), this, bDatabaseManager.DatabaseType.SQL);
+        m_database = bDatabaseManager.createDatabase(this.getSetting(Setting.databaseName, "my_database"), this, bDatabaseManager.DatabaseType.SQL);
         if (m_database.login(
-                this.getSetting("database.host", "localhost"),
-                this.getSetting("database.username", "user"),
-                this.getSetting("database.password", "password"),
-                this.getSetting("database.port", 3306))) {
+                this.getSetting(Setting.databaseHost, "localhost"),
+                this.getSetting(Setting.databaseUsername, "user"),
+                this.getSetting(Setting.databasePassword, "password"),
+                this.getSetting(Setting.databasePort, 3306))) {
             
             this.logInfo("Connected to database. Loading player skills");            
             m_skillTable = m_database.createTable("BadgerRPG_SkillData", PlayerSkillTableData.class);
+            
+            // For all online players, load in their skill data
             for (Player player : Bukkit.getOnlinePlayers()) {
                 this.addPlayerData(player);
             }
@@ -104,6 +108,11 @@ public final class BadgerRPG extends SamOatesPlugin {
      */
     @Override
     public void onDisable() {
+        
+        m_logblock = null;
+        m_skills.clear();        
+        m_database.freeDatabase();
+        
         this.logInfo("Succesfully disabled.");
     }
 
@@ -120,12 +129,14 @@ public final class BadgerRPG extends SamOatesPlugin {
      */
     public void setupConfigurationSettings() {
 
-        this.registerSetting("database.host", "localhost");
-        this.registerSetting("database.port", 3306);
-        this.registerSetting("database.database", "my_database");
-        this.registerSetting("database.username", "user");
-        this.registerSetting("database.password", "password");
+        this.registerSetting(Setting.databaseHost, "localhost");
+        this.registerSetting(Setting.databasePort, 3306);
+        this.registerSetting(Setting.databaseName, "my_database");
+        this.registerSetting(Setting.databaseUsername, "user");
+        this.registerSetting(Setting.databasePassword, "password");
 
+        this.registerSetting(Setting.useLogblockLookup, true);
+        
     }
 
     /**
