@@ -4,6 +4,10 @@ import com.samoatesgames.badgerrpg.BadgerRPG;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.inventory.ItemStack;
 
 /**
  *
@@ -30,7 +34,7 @@ public class MiningSkill extends BlockBasedSkill {
         m_blocks.put(Material.SMOOTH_BRICK, new BlockData(1));
         m_blocks.put(Material.ENDER_STONE, new BlockData(1));
         m_blocks.put(Material.BRICK, new BlockData(1));
-        m_blocks.put(Material.COBBLESTONE, new BlockData(1));
+        //m_blocks.put(Material.COBBLESTONE, new BlockData(1));
         m_blocks.put(Material.MOSSY_COBBLESTONE, new BlockData(1));
         m_blocks.put(Material.NETHER_BRICK, new BlockData(1));
         m_blocks.put(Material.COAL_ORE, new BlockData(2));
@@ -38,7 +42,7 @@ public class MiningSkill extends BlockBasedSkill {
         m_blocks.put(Material.IRON_ORE, new BlockData(4));
         m_blocks.put(Material.GOLD_ORE, new BlockData(5));
         m_blocks.put(Material.LAPIS_ORE, new BlockData(5));
-        m_blocks.put(Material.OBSIDIAN, new BlockData(5));
+        //m_blocks.put(Material.OBSIDIAN, new BlockData(5));
         m_blocks.put(Material.REDSTONE_ORE, new BlockData(6));
         m_blocks.put(Material.DIAMOND_ORE, new BlockData(10));
         m_blocks.put(Material.EMERALD_ORE, new BlockData(10));      
@@ -49,5 +53,21 @@ public class MiningSkill extends BlockBasedSkill {
         m_tools.add(Material.IRON_PICKAXE);
         m_tools.add(Material.GOLD_PICKAXE);
         m_tools.add(Material.DIAMOND_PICKAXE);
+    }
+    
+    /**
+     * 
+     * @param event
+     * @return 
+     */
+    public boolean isBlockBreakValid(BlockBreakEvent event) {
+        
+        final Player player = event.getPlayer();
+        final ItemStack tool = player.getItemInHand();
+        if (tool == null) {
+            return false;
+        }
+        
+        return !tool.getEnchantments().containsKey(Enchantment.SILK_TOUCH);
     }
 }

@@ -11,25 +11,28 @@ import org.bukkit.inventory.ItemStack;
  *
  * @author Sam
  */
-public class WoodCuttingSkill extends BlockBasedSkill {
+public class ExcavationSkill extends BlockBasedSkill {
     
     /**
      * Class constructor
      * @param plugin The owner plugin
      */
-    public WoodCuttingSkill(BadgerRPG plugin) {
-        super(plugin, "WoodCutting", Material.DIAMOND_AXE);
+    public ExcavationSkill(BadgerRPG plugin) {
+        super(plugin, "Excavation", Material.DIAMOND_SPADE);
         
         // Register default logs (this can be changed via config)
-        m_blocks.put(Material.LOG, new BlockData(4));
-        m_blocks.put(Material.LOG_2, new BlockData(4));
+        m_blocks.put(Material.GRASS, new BlockData(1));
+        m_blocks.put(Material.DIRT, new BlockData(1));
+        m_blocks.put(Material.GRAVEL, new BlockData(1));
+        m_blocks.put(Material.SAND, new BlockData(1));
+        m_blocks.put(Material.SOUL_SAND, new BlockData(1));
         
         // Register default tools (this can be changed via config)
-        m_tools.add(Material.WOOD_AXE);
-        m_tools.add(Material.STONE_AXE);
-        m_tools.add(Material.IRON_AXE);
-        m_tools.add(Material.GOLD_AXE);
-        m_tools.add(Material.DIAMOND_AXE);
+        m_tools.add(Material.WOOD_SPADE);
+        m_tools.add(Material.STONE_SPADE);
+        m_tools.add(Material.IRON_SPADE);
+        m_tools.add(Material.GOLD_SPADE);
+        m_tools.add(Material.DIAMOND_SPADE);
     }
     
     /**

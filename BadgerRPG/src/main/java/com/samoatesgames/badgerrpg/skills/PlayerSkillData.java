@@ -1,13 +1,13 @@
 package com.samoatesgames.badgerrpg.skills;
 
 import com.samoatesgames.badgerrpg.data.PlayerSkillTableData;
+import com.samoatesgames.badgerrpg.events.SkillLevelChangeEvent;
 import com.samoatesgames.samoatesplugincore.titlemanager.TitleManager;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
-import uk.thecodingbadgers.bDatabaseManager.DatabaseTable.DatabaseTable;
+import uk.thecodingbadgers.bDatabaseManager.Database.BukkitDatabase;
 
 /**
  *
@@ -23,7 +23,7 @@ public class PlayerSkillData {
     /**
      *
      */
-    private final String m_skillName;
+    private final RPGSkill m_skill;
 
     /**
      *
@@ -31,21 +31,21 @@ public class PlayerSkillData {
     private final PlayerSkillTableData m_data;
 
     /**
-     *
+     * 
      */
-    private final DatabaseTable m_skillTable;
-
+    private final BukkitDatabase m_database;
+    
     /**
      *
      * @param player
-     * @param skillName
-     * @param skillTable
+     * @param skill
+     * @param database
      */
-    public PlayerSkillData(Player player, String skillName, final DatabaseTable skillTable) {
+    public PlayerSkillData(Player player, RPGSkill skill, final BukkitDatabase database) {
         m_player = player;
-        m_skillName = skillName;
-        m_data = new PlayerSkillTableData(m_player.getUniqueId().toString(), skillName, 0, 0L);
-        m_skillTable = skillTable;
+        m_skill = skill;
+        m_data = new PlayerSkillTableData(m_player.getUniqueId().toString(), skill.getName(), 0, 0L);
+        m_database = database;
     }
 
     /**
@@ -74,18 +74,25 @@ public class PlayerSkillData {
 
         final int newLevel = getLevel();
         if (oldLevel != newLevel) {
-            TitleManager.sendTitle(m_player, "Level Up!", ChatColor.AQUA, "You are level " + newLevel + " " + m_skillName, ChatColor.GOLD, 1, 3, 1);
+            TitleManager.sendTitle(m_player, "Level Up!", ChatColor.AQUA, "You are level " + newLevel + " " + m_skill.getName(), ChatColor.GOLD, 1, 3, 1);
             m_player.playSound(m_player.getLocation(), Sound.LEVEL_UP, 1.0f, 1.0f);
+            
+            SkillLevelChangeEvent event = new SkillLevelChangeEvent(m_player, m_skill, oldLevel, newLevel);
+            Bukkit.getServer().getPluginManager().callEvent(event);
         }
 
-        m_skillTable.update(m_data, "`player` = '" + m_data.player + "' AND `skillName` = '" + m_data.skillName + "'", false);
+        m_database.query("UPDATE `BadgerRPG_SkillData` SET `xp` = '" + m_data.xp + 
+            "' WHERE `player` = '" + m_data.player + 
+            "' AND `skillName` = '" + m_data.skillName + "'");
     }
 
     /**
      *
      */
     public void clearData() {
-        m_skillTable.update(m_data, "`player` = '" + m_data.player + "' AND `skillName` = '" + m_data.skillName + "'", true);
+        m_database.query("UPDATE `BadgerRPG_SkillData` SET `xp` = '" + m_data.xp + 
+            "' WHERE `player` = '" + m_data.player + 
+            "' AND `skillName` = '" + m_data.skillName + "'", true);
     }
 
     /**
@@ -110,7 +117,10 @@ public class PlayerSkillData {
      */
     public void setTimeout(Long timeout) {
         m_data.abilityReset = timeout;
-        m_skillTable.update(m_data, "`player` = '" + m_data.player + "' AND `skillName` = '" + m_data.skillName + "'", true);
+
+        m_database.query("UPDATE `BadgerRPG_SkillData` SET `abilityReset` = '" + m_data.abilityReset + 
+            "' WHERE `player` = '" + m_data.player + 
+            "' AND `skillName` = '" + m_data.skillName + "'");
     }
 
     /**

@@ -16,4 +16,7 @@ public class Setting {
     public static final String databaseUsername = "database.username";
     public static final String databasePassword = "database.password";
     
+    //
+    public static final String disabledWorlds = "world.disabled";
+    
 }

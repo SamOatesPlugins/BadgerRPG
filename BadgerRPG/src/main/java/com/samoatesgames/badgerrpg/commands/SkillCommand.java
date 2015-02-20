@@ -1,6 +1,7 @@
 package com.samoatesgames.badgerrpg.commands;
 
 import com.samoatesgames.badgerrpg.BadgerRPG;
+import com.samoatesgames.badgerrpg.gui.SkillGUICallback;
 import com.samoatesgames.badgerrpg.skills.PlayerSkillData;
 import com.samoatesgames.badgerrpg.skills.RPGSkill;
 import com.samoatesgames.samoatesplugincore.commands.BasicCommandHandler;
@@ -88,7 +89,7 @@ public class SkillCommand extends BasicCommandHandler {
             details[0] = ChatColor.GREEN + "Level " + skillData.getLevel();
             details[1] = ChatColor.GOLD + "Experience " + skillData.getXP();
 
-            inventory.addMenuItem(skill.getName(), item, details, null);
+            inventory.addMenuItem(skill.getName(), item, details, new SkillGUICallback(player, skill));
         }
 
         inventory.open(player);        

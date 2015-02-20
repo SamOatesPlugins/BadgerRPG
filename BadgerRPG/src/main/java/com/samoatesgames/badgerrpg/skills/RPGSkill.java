@@ -1,12 +1,14 @@
 package com.samoatesgames.badgerrpg.skills;
 
 import com.samoatesgames.badgerrpg.BadgerRPG;
+import com.samoatesgames.samoatesplugincore.gui.GuiInventory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import uk.thecodingbadgers.bDatabaseManager.Database.BukkitDatabase;
 import uk.thecodingbadgers.bDatabaseManager.DatabaseTable.DatabaseTable;
 
 /**
@@ -55,6 +57,14 @@ public abstract class RPGSkill implements Listener {
     
     /**
      * 
+     * @param inventory 
+     * @param ownerInventory 
+     * @param player 
+     */
+    public abstract void createSkillGUI(GuiInventory inventory, GuiInventory ownerInventory, Player player);
+    
+    /**
+     * 
      * @return 
      */
     public String getPermission() {
@@ -81,16 +91,16 @@ public abstract class RPGSkill implements Listener {
      * Add new player data (removing old if already registered)
      *
      * @param player
-     * @param skillTable
+     * @param database
      */
-    public void addPlayerData(final Player player, final DatabaseTable skillTable) {
+    public void addPlayerData(final Player player, final BukkitDatabase database) {
 
         final UUID uuid = player.getUniqueId();
         if (m_playerData.containsKey(uuid)) {
             m_playerData.remove(uuid);
         }
 
-        m_playerData.put(uuid, new PlayerSkillData(player, this.getName(), skillTable));
+        m_playerData.put(uuid, new PlayerSkillData(player, this, database));
     }
 
     /**

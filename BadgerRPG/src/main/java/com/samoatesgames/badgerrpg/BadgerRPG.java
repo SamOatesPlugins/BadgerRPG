@@ -3,8 +3,10 @@ package com.samoatesgames.badgerrpg;
 import com.samoatesgames.badgerrpg.commands.SkillCommand;
 import com.samoatesgames.badgerrpg.data.PlayerSkillTableData;
 import com.samoatesgames.badgerrpg.listeners.PlayerListener;
+import com.samoatesgames.badgerrpg.scoreboard.ScoreboardManager;
 import com.samoatesgames.badgerrpg.skills.PlayerSkillData;
 import com.samoatesgames.badgerrpg.skills.RPGSkill;
+import com.samoatesgames.badgerrpg.skills.blocks.ExcavationSkill;
 import com.samoatesgames.badgerrpg.skills.blocks.MiningSkill;
 import com.samoatesgames.badgerrpg.skills.blocks.WoodCuttingSkill;
 import com.samoatesgames.samoatesplugincore.plugin.SamOatesPlugin;
@@ -44,11 +46,6 @@ public final class BadgerRPG extends SamOatesPlugin {
     private BukkitDatabase m_database = null;
 
     /**
-     *
-     */
-    private DatabaseTable m_skillTable = null;
-
-    /**
      * Class constructor
      */
     public BadgerRPG() {
@@ -65,10 +62,12 @@ public final class BadgerRPG extends SamOatesPlugin {
         // Setup all skills
         setupSkill(MiningSkill.class);
         setupSkill(WoodCuttingSkill.class);
+        setupSkill(ExcavationSkill.class);
 
         // Setup other listeners
         PluginManager pluginManager = this.getServer().getPluginManager();
         pluginManager.registerEvents(new PlayerListener(this), this);
+        pluginManager.registerEvents(new ScoreboardManager(this), this);
 
         // Register commands
         m_commandManager.registerCommandHandler("skills", new SkillCommand(this));
@@ -90,7 +89,10 @@ public final class BadgerRPG extends SamOatesPlugin {
                 this.getSetting(Setting.databasePort, 3306))) {
             
             this.logInfo("Connected to database. Loading player skills");            
-            m_skillTable = m_database.createTable("BadgerRPG_SkillData", PlayerSkillTableData.class);
+
+            if (!m_database.tableExists("BadgerRPG_SkillData")) {
+                m_database.query("CREATE TABLE `BadgerRPG_SkillData` (player TEXT, skillName TEXT, xp int, abilityReset BIGINT)", true);
+            }
             
             // For all online players, load in their skill data
             for (Player player : Bukkit.getOnlinePlayers()) {
@@ -109,6 +111,10 @@ public final class BadgerRPG extends SamOatesPlugin {
     @Override
     public void onDisable() {
         
+        for (Player player : this.getServer().getOnlinePlayers()) {
+            this.removePlayerData(player);
+        }
+        
         m_logblock = null;
         m_skills.clear();        
         m_database.freeDatabase();
@@ -116,6 +122,30 @@ public final class BadgerRPG extends SamOatesPlugin {
         this.logInfo("Succesfully disabled.");
     }
 
+    /**
+     * 
+     * @param player
+     * @return 
+     */
+    public int getPlayerLevel(Player player) {
+        
+        int noofSkills = 0;
+        int averageLevel = 0;
+        for (RPGSkill skill : m_skills.values()) {
+            PlayerSkillData data = skill.getSkillData(player);
+            if (data != null) {
+                averageLevel += data.getLevel();
+            }
+            noofSkills++;
+        }
+        
+        if (noofSkills == 0) {
+            return 1;
+        }
+        
+        return (int)(averageLevel / noofSkills);
+    }
+    
     /**
      *
      * @return
@@ -136,7 +166,6 @@ public final class BadgerRPG extends SamOatesPlugin {
         this.registerSetting(Setting.databasePassword, "password");
 
         this.registerSetting(Setting.useLogblockLookup, true);
-        
     }
 
     /**
@@ -176,15 +205,19 @@ public final class BadgerRPG extends SamOatesPlugin {
      */
     public void addPlayerData(final Player player) {
         for (RPGSkill skill : m_skills.values()) {
-            skill.addPlayerData(player, m_skillTable);
+            skill.addPlayerData(player, m_database);
 
-            ResultSet result = m_skillTable.selectAll("`player` = '" + player.getUniqueId().toString() + "' AND `skillName` = '" + skill.getName() + "'");
+            ResultSet result = m_database.queryResult("SELECT * FROM `BadgerRPG_SkillData` WHERE `player` = '" + player.getUniqueId().toString() + "' AND `skillName` = '" + skill.getName() + "'");
             if (result != null) {
                 try {
                     if (result.next()) {
                         PlayerSkillData data = skill.getSkillData(player);
                         data.setXP(result.getInt("xp"));
                         data.setTimeout(result.getLong("abilityReset"));
+                    } else {
+                        m_database.query("INSERT INTO `BadgerRPG_SkillData`(`player`, `skillName`, `xp`, `abilityReset`) VALUES ('" + 
+                            player.getUniqueId().toString() + "','" + skill.getName() + "',0,0)", 
+                            true);
                     }
                 } catch (Exception ex) {
                     this.logException("Failed to load skill data for '" + player.getUniqueId().toString() + "'", ex);
